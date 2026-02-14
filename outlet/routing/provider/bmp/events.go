@@ -285,8 +285,10 @@ func (p *Provider) handleRouteMonitoring(pkey peerKey, body *bmp.BMPRouteMonitor
 		}
 	}
 	if !p.config.CollectASPaths {
-		rta.asPath = rta.asPath[:0]
+		rta.asPath = nil
 	}
+	nhRef := p.rib.nextHops.Put(nextHop(nh))
+	rtaRef := p.rib.rtas.Put(rta)
 
 	added := 0
 	removed := 0
@@ -307,8 +309,8 @@ func (p *Provider) handleRouteMonitoring(pkey peerKey, body *bmp.BMPRouteMonitor
 					path:   path.ID,
 					rd:     pkey.distinguisher,
 				}),
-				nextHop:    p.rib.nextHops.Put(nextHop(nh)),
-				attributes: p.rib.rtas.Put(rta),
+				nextHop:    nhRef,
+				attributes: rtaRef,
 				prefixLen:  uint8(pfx.Bits()),
 			})
 		}
@@ -338,6 +340,7 @@ func (p *Provider) handleRouteMonitoring(pkey peerKey, body *bmp.BMPRouteMonitor
 		switch attr := attr.(type) {
 		case *bgp.PathAttributeMpReachNLRI:
 			nh = helpers.AddrTo6(attr.Nexthop)
+			nhRef = p.rib.nextHops.Put(nextHop(nh))
 			paths = attr.Value
 			family = bgp.NewFamily(attr.AFI, attr.SAFI)
 		case *bgp.PathAttributeMpUnreachNLRI:
@@ -379,8 +382,8 @@ func (p *Provider) handleRouteMonitoring(pkey peerKey, body *bmp.BMPRouteMonitor
 						rd:     rd,
 						path:   path.ID,
 					}),
-					nextHop:    p.rib.nextHops.Put(nextHop(nh)),
-					attributes: p.rib.rtas.Put(rta),
+					nextHop:    nhRef,
+					attributes: rtaRef,
 					prefixLen:  uint8(pfx.Bits()),
 				})
 			case *bgp.PathAttributeMpUnreachNLRI:
