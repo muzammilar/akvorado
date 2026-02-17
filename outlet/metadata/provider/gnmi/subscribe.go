@@ -131,11 +131,11 @@ func gnmiPathToEvent(p *gnmi.Path, prefix event) event {
 		pathString.WriteString("/")
 
 		// Remove namespace if present and format path
-		colon := strings.Index(name, ":")
-		if colon == -1 {
+		_, after, ok := strings.Cut(name, ":")
+		if !ok {
 			pathString.WriteString(name)
 		} else {
-			pathString.WriteString(name[colon+1:])
+			pathString.WriteString(after)
 		}
 
 		// Format keys
