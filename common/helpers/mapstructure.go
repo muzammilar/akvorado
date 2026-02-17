@@ -66,7 +66,6 @@ func SameTypeOrSuperset(input, ref reflect.Type) bool {
 		return false
 	}
 	for field := range input.Fields() {
-		field := field
 		if tag := field.Tag.Get("mapstructure"); tag == ",squash" && field.Type == ref {
 			return true
 		}
