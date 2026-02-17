@@ -52,8 +52,8 @@ require (
 	go.yaml.in/yaml/v3 v3.0.4
 	golang.org/x/oauth2 v0.34.0
 	golang.org/x/sync v0.19.0
-	golang.org/x/sys v0.40.0
-	golang.org/x/text v0.33.0
+	golang.org/x/sys v0.41.0
+	golang.org/x/text v0.34.0
 	google.golang.org/grpc v1.78.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637
@@ -67,7 +67,7 @@ require (
 	codeberg.org/chavacava/garif v0.2.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/AlekSi/pointer v1.2.0 // indirect
-	github.com/BurntSushi/toml v1.5.0 // indirect
+	github.com/BurntSushi/toml v1.6.0 // indirect
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bio-routing/tflow2 v0.0.0-20181230153523-2e308a4a3c3a // indirect
@@ -136,7 +136,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/mdlayher/socket v0.5.1 // indirect
 	github.com/mgechev/dots v1.0.0 // indirect
-	github.com/mgechev/revive v1.12.0 // indirect
+	github.com/mgechev/revive v1.14.0 // indirect
 	github.com/mna/pigeon v1.3.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
@@ -164,7 +164,7 @@ require (
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/sirikothe/gotextfsm v1.0.1-0.20200816110946-6aa2cfd355e4 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
-	github.com/spf13/afero v1.14.0 // indirect
+	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
@@ -180,19 +180,19 @@ require (
 	go.uber.org/zap v1.27.1 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	golang.org/x/arch v0.20.0 // indirect
-	golang.org/x/crypto v0.47.0 // indirect
+	golang.org/x/crypto v0.48.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20231108232855-2478ac86f678 // indirect
-	golang.org/x/mod v0.31.0 // indirect
-	golang.org/x/net v0.49.0 // indirect
-	golang.org/x/telemetry v0.0.0-20251203150158-8fff8a5912fc // indirect
-	golang.org/x/term v0.39.0 // indirect
-	golang.org/x/tools v0.40.0 // indirect
+	golang.org/x/mod v0.33.0 // indirect
+	golang.org/x/net v0.50.0 // indirect
+	golang.org/x/telemetry v0.0.0-20260209163413-e7419c687ee4 // indirect
+	golang.org/x/term v0.40.0 // indirect
+	golang.org/x/tools v0.42.0 // indirect
 	golang.org/x/tools/go/expect v0.1.1-deprecated // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251029180050-ab9386a59fda // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/gotestsum v1.12.3 // indirect
-	honnef.co/go/tools v0.6.1 // indirect
+	honnef.co/go/tools v0.7.0 // indirect
 	modernc.org/libc v1.22.5 // indirect
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/memory v1.5.0 // indirect

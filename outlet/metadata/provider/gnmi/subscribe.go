@@ -93,8 +93,6 @@ func subscribeResponsesToEvents(responses []*gnmi.SubscribeResponse) []event {
 // the JSON-decoded value.
 func jsonAppendToEvents(events []event, ev event, value any) []event {
 	switch value := value.(type) {
-	default:
-		return events
 	// Slices: not handled
 	// Maps
 	case map[string]any:
@@ -111,6 +109,8 @@ func jsonAppendToEvents(events []event, ev event, value any) []event {
 		ev.Value = strconv.FormatInt(int64(value), 10)
 	case string:
 		ev.Value = value
+	default:
+		return events
 	}
 	return append(events, ev)
 }
