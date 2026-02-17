@@ -512,12 +512,11 @@ size, you need to:
 The value of the receive buffer is also available as a metric:
 
 ```console
-$ curl -s http://127.0.0.1:8080/api/v0/inlet/metrics | grep -P 'akvorado_outlet_routing_provider_bmp_buffer'
-​# HELP akvorado_outlet_flow_input_udp_buffer_size_bytes Size of the in-kernel buffer for this connection.
-​# TYPE akvorado_outlet_flow_input_udp_buffer_size_bytes gauge
-akvorado_outlet_flow_input_udp_buffer_size_bytes{exporter="241.107.1.12"} 425984
+# HELP akvorado_outlet_routing_provider_bmp_buffer_size_bytes Size of the in-kernel buffer for this connection.
+# TYPE akvorado_outlet_routing_provider_bmp_buffer_size_bytes gauge
+akvorado_outlet_routing_provider_bmp_buffer_size_bytes{exporter="247.16.14.12"} 425984
+akvorado_outlet_routing_provider_bmp_buffer_size_bytes{exporter="247.16.14.13"} 425984
 ```
-
 
 ### Profiling
 
