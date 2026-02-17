@@ -65,8 +65,8 @@ func SameTypeOrSuperset(input, ref reflect.Type) bool {
 	if input.Kind() != reflect.Struct {
 		return false
 	}
-	for i := 0; i < input.NumField(); i++ {
-		field := input.Field(i)
+	for field := range input.Fields() {
+		field := field
 		if tag := field.Tag.Get("mapstructure"); tag == ",squash" && field.Type == ref {
 			return true
 		}
@@ -255,8 +255,8 @@ func ParametrizedConfigurationUnmarshallerHook[OuterConfiguration any, InnerConf
 				return nil, errors.New("configuration should not have a `config' key")
 			default:
 				t := to.Type()
-				for i := range t.NumField() {
-					if MapStructureMatchName(keyStr, t.Field(i).Name) {
+				for field := range t.Fields() {
+					if MapStructureMatchName(keyStr, field.Name) {
 						// Don't touch
 						continue outer
 					}
