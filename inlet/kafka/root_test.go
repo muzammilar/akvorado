@@ -81,6 +81,7 @@ func TestKafka(t *testing.T) {
 		kgo.SeedBrokers(mock.ListenAddrs()...),
 		kgo.ConsumeTopics(topic),
 		kgo.ConsumeResetOffset(kgo.NewOffset().AtStart()),
+		kgo.FetchMaxWait(10*time.Millisecond),
 		kgo.WithLogger(kafka.NewLogger(r)),
 	)
 	if err != nil {
