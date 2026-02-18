@@ -10,6 +10,12 @@ import (
 	"strings"
 )
 
+// QuoteIdentifier quotes a ClickHouse identifier (table name, column name,
+// database name, cluster name, etc.) using backtick escaping.
+func QuoteIdentifier(name string) string {
+	return "`" + strings.ReplaceAll(name, "`", "``") + "`"
+}
+
 // ExecOnCluster executes a query on a cluster. It's a wrapper around Exec()
 // invoking TransformQueryOnCluster.
 func (c *Component) ExecOnCluster(ctx context.Context, query string, args ...any) error {
@@ -76,5 +82,5 @@ func TransformQueryOnCluster(query, cluster string) string {
 		return query
 	}
 
-	return fmt.Sprintf("%s ON CLUSTER %s%s", prefix, cluster, query[len(prefix):])
+	return fmt.Sprintf("%s ON CLUSTER %s%s", prefix, QuoteIdentifier(cluster), query[len(prefix):])
 }
