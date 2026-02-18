@@ -16,6 +16,7 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 
+	"akvorado/common/clickhousedb"
 	"akvorado/common/helpers"
 	"akvorado/common/schema"
 )
@@ -40,7 +41,13 @@ func (c *Component) wrapMigrations(ctx context.Context, fns ...func(context.Cont
 
 // stemplate is a simple wrapper around text/template.
 func stemplate(t string, data any) (string, error) {
-	tpl, err := template.New("tpl").Option("missingkey=error").Parse(t)
+	tpl, err := template.New("tpl").
+		Option("missingkey=error").
+		Funcs(template.FuncMap{
+			"qi": clickhousedb.QuoteIdentifier, // identifier: `name`
+			"qs": quoteString,                  // string: 'value'
+		}).
+		Parse(t)
 	if err != nil {
 		return "", err
 	}
@@ -143,7 +150,7 @@ func (c *Component) createDictionary(ctx context.Context, name, layout, schema, 
 	source := fmt.Sprintf(`SOURCE(HTTP(%s))`, strings.Join(sourceParams, " "))
 	settings := `SETTINGS(format_csv_allow_single_quotes = 0)`
 	createQuery, err := stemplate(`
-CREATE DICTIONARY {{ .Database }}.{{ .Name }} ({{ .Schema }})
+CREATE DICTIONARY {{ qi .Database }}.{{ qi .Name }} ({{ .Schema }})
 PRIMARY KEY {{ .PrimaryKey}}
 {{ .Source }}
 LIFETIME(MIN 0 MAX 3600)
@@ -195,7 +202,7 @@ func (c *Component) createExportersTable(ctx context.Context) error {
 	// Build CREATE TABLE
 	name := "exporters"
 	createQuery, err := stemplate(
-		`CREATE TABLE {{ .Database }}.{{ .Table }}
+		`CREATE TABLE {{ qi .Database }}.{{ qi .Table }}
 ({{ .Schema }})
 ENGINE = {{ .Engine }}
 ORDER BY (ExporterAddress, IfName)
@@ -248,7 +255,7 @@ func (c *Component) createExportersConsumerView(ctx context.Context) error {
 
 	// Build SELECT query
 	selectQuery, err := stemplate(
-		`SELECT DISTINCT {{ .Columns }} FROM {{ .Database }}.{{ .Table }} ARRAY JOIN arrayEnumerate([1, 2]) AS num`,
+		`SELECT DISTINCT {{ .Columns }} FROM {{ qi .Database }}.{{ qi .Table }} ARRAY JOIN arrayEnumerate([1, 2]) AS num`,
 		helpers.M{
 			"Table":    c.distributedTable("flows"),
 			"Database": c.d.ClickHouse.DatabaseName(),
@@ -289,7 +296,7 @@ func (c *Component) createRawFlowsTable(ctx context.Context) error {
 
 	// Build CREATE query
 	createQuery, err := stemplate(
-		"CREATE TABLE {{ .Database }}.{{ .Table }} ({{ .Schema }}) ENGINE = `Null`",
+		"CREATE TABLE {{ qi .Database }}.{{ qi .Table }} ({{ .Schema }}) ENGINE = `Null`",
 		helpers.M{
 			"Database": c.d.ClickHouse.DatabaseName(),
 			"Table":    tableName,
@@ -336,16 +343,15 @@ func (c *Component) createRawFlowsConsumerView(ctx context.Context) error {
 	viewName := fmt.Sprintf("%s_consumer", tableName)
 
 	// Build SELECT query
-	args := helpers.M{
-		"Columns": strings.Join(c.d.Schema.ClickHouseSelectColumns(
-			schema.ClickHouseSubstituteGenerates,
-			schema.ClickHouseSkipAliasedColumns), ", "),
-		"Database": c.d.ClickHouse.DatabaseName(),
-		"Table":    tableName,
-	}
 	selectQuery, err := stemplate(
-		`SELECT {{ .Columns }} FROM {{ .Database }}.{{ .Table }}`,
-		args)
+		`SELECT {{ .Columns }} FROM {{ qi .Database }}.{{ qi .Table }}`,
+		helpers.M{
+			"Columns": strings.Join(c.d.Schema.ClickHouseSelectColumns(
+				schema.ClickHouseSubstituteGenerates,
+				schema.ClickHouseSkipAliasedColumns), ", "),
+			"Database": c.d.ClickHouse.DatabaseName(),
+			"Table":    tableName,
+		})
 	if err != nil {
 		return fmt.Errorf("cannot build select statement for raw flows consumer view: %w", err)
 	}
@@ -655,7 +661,7 @@ SELECT
  toStartOfInterval(TimeReceived, toIntervalSecond({{ .Seconds }})) AS TimeReceived,
  {{ .Columns }}
 FROM {{ .Database }}.{{ .Table }}`, helpers.M{
-		"Database": c.d.ClickHouse.DatabaseName(),
+		"Database": clickhousedb.QuoteIdentifier(c.d.ClickHouse.DatabaseName()),
 		"Table":    c.localTable("flows"),
 		"Seconds":  uint64(resolution.Interval.Seconds()),
 		"Columns": strings.Join(c.d.Schema.ClickHouseSelectColumns(
@@ -725,12 +731,12 @@ ORDER BY position ASC
 
 	// Build the CREATE TABLE
 	createQuery, err := stemplate(
-		`CREATE TABLE {{ .Database }}.{{ .Target }}
+		`CREATE TABLE {{ qi .Database }}.{{ qi .Target }}
 ({{ .Schema }})
-ENGINE = Distributed('{{ .Cluster }}', '{{ .Database}}', '{{ .Source }}', rand())`,
+ENGINE = Distributed({{ qs .Cluster }}, {{ qs .Database }}, {{ qs .Source }}, rand())`,
 		helpers.M{
-			"Cluster":  c.d.ClickHouse.ClusterName(),
 			"Database": c.d.ClickHouse.DatabaseName(),
+			"Cluster":  c.d.ClickHouse.ClusterName(),
 			"Source":   c.localTable(source),
 			"Target":   c.distributedTable(source),
 			"Schema":   strings.Join(cols, ", "),
