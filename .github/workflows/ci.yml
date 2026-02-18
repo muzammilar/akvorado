@@ -196,6 +196,16 @@ jobs:
         if: failure()
         run: |
           docker compose logs -t
+      - name: Collect profile
+        run: |
+          make default.pgo
+      - name: Upload profile
+        uses: actions/upload-artifact@v6
+        with:
+          name: pgo
+          if-no-files-found: error
+          path: |
+            default.pgo
       - name: Retrieve coverage files
         run: |
           docker compose stop
