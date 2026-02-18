@@ -199,6 +199,7 @@ jobs:
       - name: Collect profile
         run: |
           make -j default.pgo
+          go tool pprof -top default.pgo
       - name: Upload profile
         uses: actions/upload-artifact@v6
         with:
