@@ -198,7 +198,7 @@ jobs:
           docker compose logs -t
       - name: Collect profile
         run: |
-          make default.pgo
+          make -j default.pgo
       - name: Upload profile
         uses: actions/upload-artifact@v6
         with:
