@@ -185,8 +185,8 @@ common/embed/data/embed.zip: ; $(info $(M) generate embed.zip…)
 	$Q TMPDIR=$$(mktemp -d) \
 	&& trap 'rm -rf "$$TMPDIR"' EXIT \
 	&& tar -cf - $^ | tar -C "$$TMPDIR" -xf - \
-	&& find "$$TMPDIR"/console/data/docs -name "*.svg" -type f -print0 | xargs -0 sed -i.bak 's/ content="[^"]*"//g' \
-	&& ( cd "$$TMPDIR" && zip --quiet --recurse-paths --exclude "*.svg.bak" - .) > $@
+	&& find "$$TMPDIR"/console/data/docs -name "*.svg" -type f -print0 | xargs -0 sed -i -e 's/ content="[^"]*"//g' \
+	&& ( cd "$$TMPDIR" && zip --quiet --recurse-paths - .) > $@
 
 # Tests
 
@@ -316,5 +316,5 @@ docker-upgrade-versions: ; $(info $(M) check for Docker image updates…) @ ## C
 				| sort -Vr | head -1); \
 			[ "$$version" = "$$latest" ] || { \
 				>&2 echo "$$image $$version→$$latest"; \
-				sed -i "s,$$image:$$version,$$image:$$latest," docker/versions.yml; }; \
+				sed -i -e "s,$$image:$$version,$$image:$$latest," docker/versions.yml; }; \
 		done
