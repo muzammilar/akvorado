@@ -210,16 +210,17 @@ func TestCore(t *testing.T) {
 		}
 	})
 
-	// Test rate limiting
+	// Test rate limiting. Use rateLimit=20 so burst=int(20/10)=2. At 20
+	// tokens/s, it takes 50ms to regenerate a token, so it should be long
+	// enough to process 10 flows through the channel. This makes the split
+	// deterministic: exactly 2 forwarded, 8 dropped.
 	t.Run("rate limiting", func(t *testing.T) {
 		clickhouseMessagesMutex.Lock()
 		clickhouseMessages = clickhouseMessages[:0]
 		clickhouseMessagesMutex.Unlock()
 
-		// Inject 20 flows with a rate limit of 100 (burst = 10).
-		// The first 10 should be allowed, the remaining 10 should be rate limited.
-		for range 20 {
-			injectFlow(flowMessage("192.0.2.144", 434, 677), 100)
+		for range 10 {
+			injectFlow(flowMessage("192.0.2.144", 434, 677), 20)
 		}
 		time.Sleep(50 * time.Millisecond)
 
@@ -229,11 +230,11 @@ func TestCore(t *testing.T) {
 		expectedMetrics := map[string]string{
 			`received_flows_total{exporter="192.0.2.142"}`:     "3",
 			`received_flows_total{exporter="192.0.2.143"}`:     "1",
-			`received_flows_total{exporter="192.0.2.144"}`:     "20",
+			`received_flows_total{exporter="192.0.2.144"}`:     "10",
 			`forwarded_flows_total{exporter="192.0.2.142"}`:    "2",
 			`forwarded_flows_total{exporter="192.0.2.143"}`:    "1",
-			`forwarded_flows_total{exporter="192.0.2.144"}`:    "10",
-			`flows_rate_limited_total{exporter="192.0.2.144"}`: "10",
+			`forwarded_flows_total{exporter="192.0.2.144"}`:    "2",
+			`flows_rate_limited_total{exporter="192.0.2.144"}`: "8",
 		}
 		if diff := helpers.Diff(gotMetrics, expectedMetrics); diff != "" {
 			t.Fatalf("Metrics (-got, +want):\n%s", diff)
@@ -242,18 +243,18 @@ func TestCore(t *testing.T) {
 		clickhouseMessagesMutex.Lock()
 		clickhouseMessagesLen := len(clickhouseMessages)
 		clickhouseMessagesMutex.Unlock()
-		if diff := helpers.Diff(clickhouseMessagesLen, 10); diff != "" {
+		if diff := helpers.Diff(clickhouseMessagesLen, 2); diff != "" {
 			t.Fatalf("ClickHouse messages count (-got, +want):\n%s", diff)
 		}
 
-		// Wait for the next 200ms tick so the drop rate (50%) is visible,
-		// then inject one more flow. Its sampling rate should be adjusted
-		// from 1000 to 1000/(1-0.5) = 2000.
+		// Wait for the next 200ms tick so the drop rate (8/10 = 0.8)
+		// becomes visible, then inject one more flow. Its sampling rate
+		// should be adjusted: 1000 / (1 - 0.8) = 5000.
 		time.Sleep(200 * time.Millisecond)
 		clickhouseMessagesMutex.Lock()
 		clickhouseMessages = clickhouseMessages[:0]
 		clickhouseMessagesMutex.Unlock()
-		injectFlow(flowMessage("192.0.2.144", 434, 677), 100)
+		injectFlow(flowMessage("192.0.2.144", 434, 677), 20)
 		time.Sleep(50 * time.Millisecond)
 
 		clickhouseMessagesMutex.Lock()
@@ -261,9 +262,9 @@ func TestCore(t *testing.T) {
 		copy(clickhouseMessagesCopy, clickhouseMessages)
 		clickhouseMessagesMutex.Unlock()
 		if diff := helpers.Diff(len(clickhouseMessagesCopy), 1); diff != "" {
-			t.Fatalf("ClickHouse messages count (-got, +want):\n%s", diff)
+			t.Fatalf("ClickHouse messages count after sleep (-got, +want):\n%s", diff)
 		}
-		if diff := helpers.Diff(clickhouseMessagesCopy[0].SamplingRate, uint64(2000)); diff != "" {
+		if diff := helpers.Diff(clickhouseMessagesCopy[0].SamplingRate, uint64(5000)); diff != "" {
 			t.Fatalf("SamplingRate (-got, +want):\n%s", diff)
 		}
 	})
