@@ -8,20 +8,36 @@ on:
       - v*
   pull_request:
 jobs:
-  dependabot:
-    name: 🤖 Check dependabot status
+  renovatebot:
+    name: 🤖 Detect renovatebot action
     runs-on: ubuntu-latest
-    permissions: {}
+    permissions:
+      pull-requests: read
     if: |
       !startsWith(github.event.head_commit.message, 'build: update Nix dependency hashes') ||
        github.ref_type == 'tag'
     steps:
-      - name: Fetch dependabot metadata
-        if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request' }}
-        id: metadata
-        uses: dependabot/fetch-metadata@v2.5.0
+      - name: Detect package ecosystem from changed files
+        if: github.actor == 'renovate[bot]' && github.event_name == 'pull_request'
+        id: detect
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          files=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files --jq '.[].filename')
+          has_npm=false
+          has_gomod=false
+          if echo "$files" | grep -q '^console/frontend/pnpm-lock.yaml$'; then
+            has_npm=true
+          fi
+          if echo "$files" | grep -qE '^go\.sum$'; then
+            has_gomod=true
+          fi
+          case $has_npm,$has_gomod in
+            true,false) echo "package-ecosystem=npm" >> "$GITHUB_OUTPUT" ;;
+            false,true) echo "package-ecosystem=gomod" >> "$GITHUB_OUTPUT" ;;
+          fi
     outputs:
-      package-ecosystem: ${{ steps.metadata.outputs.package-ecosystem }}
+      package-ecosystem: ${{ steps.detect.outputs.package-ecosystem }}
 
   build-linux:
     name: 🐧 Test on Linux
@@ -266,8 +282,8 @@ jobs:
     name: 🔬 Test only Go
     runs-on: ubuntu-latest
     needs:
-      - dependabot
-    if: needs.dependabot.outputs.package-ecosystem != 'npm_and_yarn'
+      - renovatebot
+    if: needs.renovatebot.outputs.package-ecosystem != 'npm'
     permissions:
       contents: read
     steps:
@@ -300,16 +316,16 @@ jobs:
     name: 🔬 Test only JS
     runs-on: ubuntu-latest
     needs:
-      - dependabot
+      - renovatebot
     permissions:
       contents: read
     strategy:
       matrix:
         node-version: [20, 22, 24]
-        dependabot:
-          - ${{ needs.dependabot.outputs.package-ecosystem }}
+        renovatebot:
+          - ${{ needs.renovatebot.outputs.package-ecosystem }}
         exclude:
-          - dependabot: go_modules
+          - renovatebot: gomod
         include:
           - node-version: 22
     steps:

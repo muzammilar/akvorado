@@ -1,0 +1,90 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "schedule": ["before 5am on the first day of the month"],
+  "labels": ["dependencies"],
+  "semanticCommits": "enabled",
+  "semanticCommitType": "build",
+  "semanticCommitScope": null,
+  "prConcurrentLimit": 10,
+  "minimumReleaseAge": "5 days",
+  "docker-compose": {
+    "fileMatch": ["docker/versions\\.yml$"]
+  },
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "addLabels": ["service::console"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "groupName": "vueuse",
+      "matchPackagePatterns": ["^@vueuse/"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "groupName": "vue",
+      "matchPackageNames": ["vue", "vue-router", "vue-tsc"],
+      "matchPackagePatterns": ["^@vue/"],
+      "excludePackageNames": ["@vue/tsconfig"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "groupName": "codemirror",
+      "matchPackagePatterns": ["^@codemirror/", "^@lezer/"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "groupName": "dev-dependencies",
+      "matchPackagePatterns": ["^@vitejs/", "^@vitest/", "^@volar/", "^oxlint", "^prettier"],
+      "matchPackageNames": ["autoprefixer", "vite", "vitest"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "groupName": "tailwindcss",
+      "matchPackageNames": ["tailwindcss"],
+      "matchPackagePatterns": ["^@tailwindcss/"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "groupName": "typescript",
+      "matchPackageNames": ["typescript", "typescript-language-server"],
+      "matchPackagePatterns": ["^@tsconfig/", "^@types/", "^@vue/tsconfig"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["@types/node"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "matchManagers": ["gomod"],
+      "groupName": "franz-go",
+      "matchPackagePatterns": ["^github\\.com/twmb/franz-go"]
+    },
+    {
+      "matchManagers": ["gomod"],
+      "groupName": "golang-org-x",
+      "matchPackagePatterns": ["^golang\\.org/x/"]
+    },
+    {
+      "matchManagers": ["docker-compose"],
+      "addLabels": ["service::docker"]
+    },
+    {
+      "matchManagers": ["docker-compose"],
+      "matchPackageNames": ["clickhouse/clickhouse-server", "clickhouse/clickhouse-keeper"],
+      "allowedVersions": "/^\\d+\\.[38]$/"
+    },
+    {
+      "matchManagers": ["docker-compose"],
+      "matchPackageNames": ["timberio/vector"],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.X-alpine$"
+    },
+    {
+      "matchManagers": ["docker-compose"],
+      "matchPackageNames": ["ghcr.io/akvorado/akvorado", "ghcr.io/akvorado/ipinfo-geoipupdate"],
+      "enabled": false
+    }
+  ]
+}
