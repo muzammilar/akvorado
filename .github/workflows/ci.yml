@@ -35,7 +35,7 @@ jobs:
           case $has_npm,$has_gomod in
             true,false) echo "package-ecosystem=npm" >> "$GITHUB_OUTPUT" ;;
             false,true) echo "package-ecosystem=gomod" >> "$GITHUB_OUTPUT" ;;
-          fi
+          esac
     outputs:
       package-ecosystem: ${{ steps.detect.outputs.package-ecosystem }}
 
